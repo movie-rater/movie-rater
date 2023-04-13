@@ -2,8 +2,11 @@
 
 const express = require('express');
 const dataModules = require('../models/modelIndex');
-
 const router = express.Router();
+const basicAuth = require('../auth/middleware/basic');
+const bearerAuth = require('../auth/middleware/bearer');
+const permissions = require('../auth/middleware/acl');
+
 
 router.param('model', (req, res, next) => {
   const modelName = req.params.model;
@@ -14,41 +17,39 @@ router.param('model', (req, res, next) => {
     next('Invalid Model');
   }
 });
+router.get('/:model',bearerAuth, getAllMovies);
+router.get('/:model/:id',bearerAuth, getAMovie);
+router.post('/:model',bearerAuth,  permissions('create'),createAMovie);
+router.put('/:model/:id',bearerAuth, permissions('update'), updateAMovie);
+router.delete('/:model/:id',bearerAuth, permissions('delete'), deleteAMovie);
 
-router.get('/:model', handleGetAll);
-router.get('/:model/:id', handleGetOne);
-router.post('/:model', handleCreate);
-router.put('/:model/:id', handleUpdate);
-router.delete('/:model/:id', handleDelete);
-
-async function handleGetAll(req, res) {
+async function getAllMovies(req, res) {
   let allRecords = await req.model.get();
   res.status(200).json(allRecords);
 }
 
-async function handleGetOne(req, res) {
+async function getAMovie(req, res) {
   const id = req.params.id;
   let theRecord = await req.model.get(id)
   res.status(200).json(theRecord);
 }
 
-async function handleCreate(req, res) {
+async function createAMovie(req, res) {
   let obj = req.body;
   let newRecord = await req.model.create(obj);
   res.status(201).json(newRecord);
 }
 
-async function handleUpdate(req, res) {
+async function updateAMovie(req, res) {
   const id = req.params.id;
   const obj = req.body;
   let updatedRecord = await req.model.update(id, obj)
   res.status(200).json(updatedRecord);
 }
 
-async function handleDelete(req, res) {
+async function deleteAMovie(req, res) {
   let id = req.params.id;
   let deletedRecord = await req.model.delete(id);
-console.log(deletedRecord);
   res.status(200).json(deletedRecord);
 }
 

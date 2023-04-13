@@ -2,25 +2,18 @@
 
 const express = require('express');
 const cors = require('cors');
-
-const notFoundHandler = require('./error-handlers/404');
-const errorHandler = require('./error-handlers/500');
-const logger = require('./middleware/logger');
+const error404 = require('./error-handlers/404');
+const error500 = require('./error-handlers/500');
 const authRoutes = require('./auth/routes');
-const v1Routes = require('./routes/v1');
-const v2Routes = require('./routes/v2');
+const routes = require('./routes/routes');
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(logger);
-//hit auth, sign up and sign in first
 app.use(authRoutes);
-// then user can go to api
-app.use('/api/v1', v1Routes);
-app.use('/api/v2', v2Routes);
-app.use('*', notFoundHandler);
-app.use(errorHandler);
+app.use('/', routes);
+app.use('*', error404);
+app.use(error500);
 
 module.exports = {
   server: app,
